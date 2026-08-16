@@ -1,0 +1,64 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  ADMIN
+  TEACHER
+  STUDENT
+}
+
+enum LessonStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  fullName  String
+  role      UserRole @default(STUDENT)
+  avatarUrl String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lessons Lesson[]
+
+  @@map("users")
+}
+
+model Lesson {
+  id             String       @id @default(uuid())
+  title          String
+  slug           String       @unique
+  description    String?
+  grade          Int
+  subject        String       @default("Toán")
+  topic          String?
+  objectives     Json?
+  content        Json?
+  prerequisites  Json?
+  estimatedTime  Int?
+  simulationSlug String?
+  competencies   Json?
+  activities     Json?
+  status         LessonStatus @default(DRAFT)
+
+  teacherId String
+  teacher   User   @relation(fields: [teacherId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([grade])
+  @@index([teacherId])
+  @@index([status])
+  @@map("lessons")
+}
